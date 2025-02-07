@@ -61,3 +61,6 @@ databaseChangeLog:
             constraintName: fk_transactions_accounts
             referencedTableName: accounts
             referencedColumnNames: id
+
+  - include:
+      file: db/changelog/db.changelog-insert-data.yaml

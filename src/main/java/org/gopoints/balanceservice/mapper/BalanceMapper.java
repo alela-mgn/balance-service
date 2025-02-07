@@ -15,6 +15,6 @@ public interface BalanceMapper {
 
     TransactionDto transactionToDto(Transaction transaction);
 
-    @Mapping(target = "timestamp", expression = "java(LocalDateTime.now())")
+    @Mapping(target = "timestamp", expression = "java(java.time.LocalDateTime.now())")
     Transaction transactionDtoToEntity(TransactionDto transactionDto);
 }
