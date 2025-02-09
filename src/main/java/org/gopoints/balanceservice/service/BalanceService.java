@@ -3,11 +3,13 @@ package org.gopoints.balanceservice.service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.gopoints.balanceservice.model.Account;
+import org.gopoints.balanceservice.model.RabbitMessage;
 import org.gopoints.balanceservice.model.Transaction;
 import org.gopoints.balanceservice.model.exceptions.AccountNotFoundException;
 import org.gopoints.balanceservice.model.exceptions.InsufficientFundsException;
 import org.gopoints.balanceservice.repository.AccountRepository;
 import org.gopoints.balanceservice.repository.TransactionRepository;
+import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +20,12 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 @Slf4j
+@CacheConfig(cacheNames = {"balance"})
 public class BalanceService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final RabbitMQService rabbitMqService;
 
     @Transactional(readOnly = true)
     public Account getAccount(Long accountId) {
@@ -46,6 +50,8 @@ public class BalanceService {
         transactionRepository.save(transaction);
 
         log.debug("Deposit complete. Account {} new balance: {}", accountId, account.getBalance());
+
+        rabbitMqService.sendMessage(new RabbitMessage(accountId, amount, "deposit", null));
     }
 
     @Transactional
@@ -68,6 +74,8 @@ public class BalanceService {
         transactionRepository.save(transaction);
 
         log.debug("Withdraw complete. Account {} new balance: {}", accountId, account.getBalance());
+
+        rabbitMqService.sendMessage(new RabbitMessage(accountId, amount, "withdraw", null));
     }
 
     @Transactional
@@ -75,7 +83,19 @@ public class BalanceService {
         log.info("Transferring {} from account {} to account {}", amount, fromAccountId, toAccountId);
         withdraw(fromAccountId, amount);
         deposit(toAccountId, amount);
+
+        Transaction transaction = Transaction.builder()
+                .accountId(fromAccountId)
+                .amount(amount)
+                .operationType("TRANSFER")
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        // Сохраняем транзакцию в базе данных
+        transactionRepository.save(transaction);
         log.info("Transfer complete from {} to {}", fromAccountId, toAccountId);
+
+        rabbitMqService.sendMessage(new RabbitMessage(fromAccountId, amount, "transfer", toAccountId));
     }
 
     @Transactional(readOnly = true)

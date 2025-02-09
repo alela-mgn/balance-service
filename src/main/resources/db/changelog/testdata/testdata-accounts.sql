@@ -1,0 +1,10 @@
+INSERT INTO accounts (user_id, balance) VALUES (1001,  500.00);
+INSERT INTO accounts (user_id, balance) VALUES (1002,  1200.50);
+INSERT INTO accounts (user_id, balance) VALUES (1003,  300.00);
+INSERT INTO accounts (user_id, balance) VALUES (1004,  9999.99);
+INSERT INTO accounts (user_id, balance) VALUES (1005,  15.00);
+INSERT INTO accounts (user_id, balance) VALUES (1006,  250.00);
+INSERT INTO accounts (user_id, balance) VALUES (1007,  750.00);
+INSERT INTO accounts (user_id, balance) VALUES (1008,  1024.00);
+INSERT INTO accounts (user_id, balance) VALUES (1009,  0.00);
+INSERT INTO accounts (user_id, balance) VALUES (1010,  10000.00);

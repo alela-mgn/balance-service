@@ -1,0 +1,199 @@
+openapi: 3.0.3
+info:
+  title: Balance Service API
+  description: API для управления балансами и транзакциями
+  version: 1.0.0
+paths:
+  /accounts/{accountId}/deposit:
+    post:
+      summary: Зачисление средств на счет
+      operationId: deposit
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Идентификатор счета
+          schema:
+            type: integer
+            example: 1
+        - name: amount
+          in: query
+          required: true
+          description: Сумма для зачисления
+          schema:
+            type: number
+            format: float
+            example: 50.00
+      responses:
+        '200':
+          description: Средства успешно зачислены
+        '400':
+          description: Некорректные параметры
+
+  /accounts/{accountId}/withdraw:
+    post:
+      summary: Списание средств со счета
+      operationId: withdraw
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Идентификатор счета
+          schema:
+            type: integer
+            example: 1
+        - name: amount
+          in: query
+          required: true
+          description: Сумма для списания
+          schema:
+            type: number
+            format: float
+            example: 30.00
+      responses:
+        '200':
+          description: Средства успешно списаны
+        '400':
+          description: Недостаточно средств или некорректные параметры
+
+  /accounts/transfer:
+    post:
+      summary: Перевод средств с одного счета на другой
+      operationId: transfer
+      parameters:
+        - name: fromAccountId
+          in: query
+          required: true
+          description: Идентификатор счета отправителя
+          schema:
+            type: integer
+            example: 1
+        - name: toAccountId
+          in: query
+          required: true
+          description: Идентификатор счета получателя
+          schema:
+            type: integer
+            example: 2
+        - name: amount
+          in: query
+          required: true
+          description: Сумма для перевода
+          schema:
+            type: number
+            format: float
+            example: 50.00
+      responses:
+        '200':
+          description: Перевод успешно выполнен
+        '400':
+          description: Некорректные параметры или недостаточно средств
+
+  /accounts/{accountId}/balance:
+    get:
+      summary: Получение текущего баланса по счету
+      operationId: getBalance
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Идентификатор счета
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: Баланс успешно возвращен
+          content:
+            application/json:
+              schema:
+                type: number
+                format: float
+                example: 120.00
+        '404':
+          description: Счет не найден
+
+  /accounts/{accountId}/statements:
+    get:
+      summary: Получение выписки по операциям
+      operationId: getStatements
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          description: Идентификатор счета
+          schema:
+            type: integer
+            example: 1
+        - name: startDate
+          in: query
+          required: false
+          description: Дата начала периода
+          schema:
+            type: string
+            format: date
+            example: "2025-01-01"
+        - name: endDate
+          in: query
+          required: false
+          description: Дата окончания периода
+          schema:
+            type: string
+            format: date
+            example: "2025-02-01"
+      responses:
+        '200':
+          description: Выписка успешно возвращена
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Transaction'
+        '404':
+          description: Счет не найден
+
+components:
+  schemas:
+    Account:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Идентификатор счета
+          example: 1
+        userId:
+          type: integer
+          description: Идентификатор пользователя, которому принадлежит счет
+          example: 123
+        balance:
+          type: number
+          format: float
+          description: Баланс счета
+          example: 100.00
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: Идентификатор транзакции
+          example: 1
+        accountId:
+          type: integer
+          description: Идентификатор счета, с которым связана транзакция
+          example: 1
+        amount:
+          type: number
+          format: float
+          description: Сумма транзакции
+          example: 50.00
+        operationType:
+          type: string
+          description: Тип операции (DEPOSIT, WITHDRAW, TRANSFER)
+          example: DEPOSIT
+        timestamp:
+          type: string
+          format: date-time
+          description: Время выполнения транзакции
+          example: "2025-02-07T15:30:00"

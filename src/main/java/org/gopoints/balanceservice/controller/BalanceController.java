@@ -8,6 +8,8 @@ import org.gopoints.balanceservice.model.Account;
 import org.gopoints.balanceservice.model.Transaction;
 import org.gopoints.balanceservice.service.BalanceService;
 import org.gopoints.balanceservice.mapper.BalanceMapper;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,12 +31,14 @@ public class BalanceController {
     private final BalanceMapper balanceMapper;
 
     @PostMapping("/{accountId}/deposit")
+    @CachePut(value = "balance", key = "#accountId")
     public void deposit(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
         log.info("REST request: deposit, accountId={}, amount={}", accountId, amount);
         balanceService.deposit(accountId, amount);
     }
 
     @PostMapping("/{accountId}/withdraw")
+    @CachePut(value = "balance", key = "#accountId")
     public void withdraw(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
         log.info("REST request: withdraw, accountId={}, amount={}", accountId, amount);
         balanceService.withdraw(accountId, amount);
@@ -49,6 +53,7 @@ public class BalanceController {
     }
 
     @GetMapping("/{accountId}/balance")
+    @Cacheable(value = "balance", key = "#accountId")
     public AccountDto getBalance(@PathVariable Long accountId) {
         log.info("REST request: getBalance, accountId={}", accountId);
         Account account = balanceService.getAccount(accountId);
