@@ -2,6 +2,7 @@ package org.gopoints.balanceservice.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.gopoints.balanceservice.model.RabbitMessage;
+
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.context.annotation.Lazy;

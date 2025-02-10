@@ -53,7 +53,6 @@ public class BalanceController {
     }
 
     @GetMapping("/{accountId}/balance")
-    @Cacheable(value = "balance", key = "#accountId")
     public AccountDto getBalance(@PathVariable Long accountId) {
         log.info("REST request: getBalance, accountId={}", accountId);
         Account account = balanceService.getAccount(accountId);
