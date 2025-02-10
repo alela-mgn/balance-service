@@ -91,7 +91,6 @@ public class BalanceService {
                 .timestamp(LocalDateTime.now())
                 .build();
 
-        // Сохраняем транзакцию в базе данных
         transactionRepository.save(transaction);
         log.info("Transfer complete from {} to {}", fromAccountId, toAccountId);
 
