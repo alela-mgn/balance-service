@@ -1,6 +1,8 @@
 package org.gopoints.balanceservice.config;
 
+import org.springframework.amqp.core.AcknowledgeMode;
 import org.springframework.amqp.core.Queue;
+import org.springframework.amqp.rabbit.config.SimpleRabbitListenerContainerFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -22,4 +24,5 @@ public class RabbitMqConfig {
     public Queue balanceQueue() {
         return new Queue(QUEUE_NAME, false);
     }
+
 }

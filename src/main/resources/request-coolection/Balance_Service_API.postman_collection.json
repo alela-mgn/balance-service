@@ -1,0 +1,156 @@
+{
+	"info": {
+		"_postman_id": "c2e59e5b-fff7-43cf-9fbd-e95c4f10de79",
+		"name": "Balance Service API",
+		"description": "Postman collection for testing Balance Service API.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "24382546"
+	},
+	"item": [
+		{
+			"name": "Deposit Funds",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/accounts/1/deposit?amount=50.00",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"1",
+						"deposit"
+					],
+					"query": [
+						{
+							"key": "amount",
+							"value": "50.00"
+						}
+					]
+				},
+				"description": "Endpoint for depositing funds into an account."
+			},
+			"response": []
+		},
+		{
+			"name": "Withdraw Funds",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/accounts/1/withdraw?amount=20.00",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"1",
+						"withdraw"
+					],
+					"query": [
+						{
+							"key": "amount",
+							"value": "20.00"
+						}
+					]
+				},
+				"description": "Endpoint for withdrawing funds from an account."
+			},
+			"response": []
+		},
+		{
+			"name": "Transfer Funds",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/accounts/transfer?fromAccountId=2&toAccountId=3&amount=150.00",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"transfer"
+					],
+					"query": [
+						{
+							"key": "fromAccountId",
+							"value": "2"
+						},
+						{
+							"key": "toAccountId",
+							"value": "3"
+						},
+						{
+							"key": "amount",
+							"value": "150.00"
+						}
+					]
+				},
+				"description": "Endpoint for transferring funds between accounts."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Account Balance",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/accounts/1/balance",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"1",
+						"balance"
+					]
+				},
+				"description": "Endpoint for retrieving the balance of an account."
+			},
+			"response": []
+		},
+		{
+			"name": "Get Transactions by Period",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/accounts/1/transactions?startDate=2025-02-06T00:00:00&endDate=2025-02-10T00:00:00",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"accounts",
+						"1",
+						"transactions"
+					],
+					"query": [
+						{
+							"key": "startDate",
+							"value": "2025-02-06T00:00:00"
+						},
+						{
+							"key": "endDate",
+							"value": "2025-02-10T00:00:00"
+						}
+					]
+				},
+				"description": "Endpoint for retrieving transactions within a specific date range."
+			},
+			"response": []
+		}
+	]
+}
