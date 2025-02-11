@@ -35,9 +35,15 @@ public class BalanceService {
 
     @Transactional
     public void deposit(Long accountId, BigDecimal amount) {
+
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Deposit amount must be positive");
+        }
+
         log.info("Depositing {} to account {}", amount, accountId);
 
-        Account account = getAccount(accountId);
+        Account account = accountRepository.findByIdWithLock(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found: " + accountId));
         account.setBalance(account.getBalance().add(amount));
         accountRepository.save(account);
 
@@ -56,9 +62,15 @@ public class BalanceService {
 
     @Transactional
     public void withdraw(Long accountId, BigDecimal amount) {
+
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Withdrawal amount must be positive");
+        }
+
         log.info("Withdrawing {} from account {}", amount, accountId);
 
-        Account account = getAccount(accountId);
+        Account account = accountRepository.findByIdWithLock(accountId)
+                .orElseThrow(() -> new AccountNotFoundException("Account not found: " + accountId));
         if (account.getBalance().compareTo(amount) < 0) {
             throw new InsufficientFundsException("Not enough balance on account " + accountId);
         }
@@ -80,9 +92,28 @@ public class BalanceService {
 
     @Transactional
     public void transfer(Long fromAccountId, Long toAccountId, BigDecimal amount) {
+
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IllegalArgumentException("Withdrawal amount must be positive");
+        }
+
+        Account fromAccount = accountRepository.findByIdWithLock(fromAccountId)
+                .orElseThrow(() -> new AccountNotFoundException("Sender account not found: " + fromAccountId));
+
+        Account toAccount = accountRepository.findByIdWithLock(toAccountId)
+                .orElseThrow(() -> new AccountNotFoundException("Recipient account not found: " + toAccountId));
+
         log.info("Transferring {} from account {} to account {}", amount, fromAccountId, toAccountId);
-        withdraw(fromAccountId, amount);
-        deposit(toAccountId, amount);
+
+        if (fromAccount.getBalance().compareTo(amount) < 0) {
+            throw new InsufficientFundsException("Not enough balance on account: " + fromAccountId);
+        }
+
+        fromAccount.setBalance(fromAccount.getBalance().subtract(amount));
+        toAccount.setBalance(toAccount.getBalance().add(amount));
+
+        accountRepository.save(fromAccount);
+        accountRepository.save(toAccount);
 
         Transaction transaction = Transaction.builder()
                 .accountId(fromAccountId)

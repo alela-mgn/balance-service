@@ -61,7 +61,7 @@ RABBITMQ_PORT=5672
 Соберите `.jar` файл приложения с помощью Maven:
 
 ```bash
-mvn clean install
+mvn clean package -DskipTests
 ```
 
 После успешной сборки файл будет находиться в папке `target` и называться `balance-service-0.0.1-SNAPSHOT.jar`.
