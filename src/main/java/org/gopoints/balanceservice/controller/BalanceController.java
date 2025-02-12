@@ -9,13 +9,14 @@ import org.gopoints.balanceservice.model.Transaction;
 import org.gopoints.balanceservice.service.BalanceService;
 import org.gopoints.balanceservice.mapper.BalanceMapper;
 import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -33,23 +34,35 @@ public class BalanceController {
     @PostMapping("/{accountId}/deposit")
     @CachePut(value = "balance", key = "#accountId")
     public void deposit(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
-        log.info("REST request: deposit, accountId={}, amount={}", accountId, amount);
-        balanceService.deposit(accountId, amount);
+        try {
+            log.info("REST request: deposit, accountId={}, amount={}", accountId, amount);
+            balanceService.deposit(accountId, amount);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @PostMapping("/{accountId}/withdraw")
     @CachePut(value = "balance", key = "#accountId")
     public void withdraw(@PathVariable Long accountId, @RequestParam BigDecimal amount) {
-        log.info("REST request: withdraw, accountId={}, amount={}", accountId, amount);
-        balanceService.withdraw(accountId, amount);
+        try {
+            log.info("REST request: withdraw, accountId={}, amount={}", accountId, amount);
+            balanceService.withdraw(accountId, amount);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @PostMapping("/transfer")
     public void transfer(@RequestParam Long fromAccountId,
                          @RequestParam Long toAccountId,
                          @RequestParam BigDecimal amount) {
+        try {
         log.info("REST request: transfer, fromId={}, toId={}, amount={}", fromAccountId, toAccountId, amount);
         balanceService.transfer(fromAccountId, toAccountId, amount);
+        } catch (IllegalArgumentException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, e.getMessage());
+        }
     }
 
     @GetMapping("/{accountId}/balance")

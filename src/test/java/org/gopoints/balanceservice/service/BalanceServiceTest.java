@@ -4,6 +4,7 @@ import org.gopoints.balanceservice.BalanceServiceApplication;
 import org.gopoints.balanceservice.model.Account;
 import org.gopoints.balanceservice.model.Transaction;
 import org.gopoints.balanceservice.model.exceptions.AccountNotFoundException;
+import org.gopoints.balanceservice.model.exceptions.InsufficientFundsException;
 import org.gopoints.balanceservice.repository.AccountRepository;
 import org.gopoints.balanceservice.repository.TransactionRepository;
 import org.junit.jupiter.api.Assertions;
@@ -20,12 +21,15 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Testcontainers
 @SpringBootTest(classes = BalanceServiceApplication.class)
@@ -97,47 +101,127 @@ public class BalanceServiceTest {
     }
 
     @Test
-    @Order(1)
+    @Transactional
     void testDeposit() {
         BigDecimal depositAmount = BigDecimal.valueOf(500);
 
         balanceService.deposit(accountId, depositAmount);
 
-        Account updatedAccount = accountRepository.findById(accountId).orElseThrow();
-        Assertions.assertEquals(new BigDecimal("1500.00"), updatedAccount.getBalance());
+        Account updatedAccount = accountRepository.findByIdWithLock(accountId).orElseThrow();
+        Assertions.assertEquals(new BigDecimal("1500"), updatedAccount.getBalance());
     }
 
     @Test
-    @Order(2)
+    @Transactional
+    void testDepositNegativeAmount() {
+        BigDecimal depositAmount = BigDecimal.valueOf(-500);  // Негативный депозит
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            balanceService.deposit(accountId, depositAmount);  // Метод должен выбросить исключение
+        });
+    }
+
+    @Test
+    @Transactional
+    void testDepositAccountNotFound() {
+        Long invalidAccountId = 999L;
+        BigDecimal depositAmount = BigDecimal.valueOf(500);
+
+        assertThrows(AccountNotFoundException.class, () -> {
+            balanceService.deposit(invalidAccountId, depositAmount);  // Метод должен выбросить исключение
+        });
+    }
+
+    @Test
+    @Transactional
     void testWithdraw() {
         BigDecimal withdrawAmount = BigDecimal.valueOf(200);
 
         balanceService.withdraw(accountId, withdrawAmount);
 
-        Account updatedAccount = accountRepository.findById(accountId).orElseThrow();
-        Assertions.assertEquals(new BigDecimal("800.00"), updatedAccount.getBalance());
-
+        Account updatedAccount = accountRepository.findByIdWithLock(accountId).orElseThrow();
+        Assertions.assertEquals(new BigDecimal("800"), updatedAccount.getBalance());
     }
 
     @Test
-    @Order(3)
-    void testTransfer() {
+    @Transactional
+    void testWithdrawNegativeAmount() {
+        BigDecimal withdrawAmount = BigDecimal.valueOf(-200);  // Негативный вывод
 
+        assertThrows(IllegalArgumentException.class, () -> {
+            balanceService.withdraw(accountId, withdrawAmount);  // Метод должен выбросить исключение
+        });
+    }
+
+    @Test
+    @Transactional
+    void testWithdrawInsufficientFunds() {
+        BigDecimal withdrawAmount = BigDecimal.valueOf(10000);  // Сумма превышает баланс
+
+        assertThrows(InsufficientFundsException.class, () -> {
+            balanceService.withdraw(accountId, withdrawAmount);  // Метод должен выбросить исключение
+        });
+    }
+
+    @Test
+    @Transactional
+    void testWithdrawAccountNotFound() {
+        Long invalidAccountId = 999L;  // Некорректный ID счета
+        BigDecimal withdrawAmount = BigDecimal.valueOf(200);
+
+        assertThrows(AccountNotFoundException.class, () -> {
+            balanceService.withdraw(invalidAccountId, withdrawAmount);  // Метод должен выбросить исключение
+        });
+    }
+
+    @Test
+    @Transactional
+    void testTransfer() {
         BigDecimal amount = BigDecimal.valueOf(200);
 
         // Выполняем перевод
         balanceService.transfer(accountId, toAccountId, amount);
 
         // Проверяем, что баланс на исходном и целевом аккаунте обновился корректно
-        Account updatedFromAccount = accountRepository.findById(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found: " + accountId));
-        Account updatedToAccount = accountRepository.findById(toAccountId).orElseThrow(() -> new AccountNotFoundException("Account not found: " + toAccountId));
+        Account updatedFromAccount = accountRepository.findByIdWithLock(accountId).orElseThrow(() -> new AccountNotFoundException("Account not found: " + accountId));
+        Account updatedToAccount = accountRepository.findByIdWithLock(toAccountId).orElseThrow(() -> new AccountNotFoundException("Account not found: " + toAccountId));
 
-        Assertions.assertEquals(new BigDecimal("800.00"), updatedFromAccount.getBalance());
-        Assertions.assertEquals(new BigDecimal("700.00"), updatedToAccount.getBalance());
+        Assertions.assertEquals(new BigDecimal("800"), updatedFromAccount.getBalance());
+        Assertions.assertEquals(new BigDecimal("700"), updatedToAccount.getBalance());
     }
 
     @Test
-    @Order(4)
+    @Transactional
+    void testTransferNegativeAmount() {
+        BigDecimal amount = BigDecimal.valueOf(-200);  // Негативный перевод
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            balanceService.transfer(accountId, toAccountId, amount);  // Метод должен выбросить исключение
+        });
+    }
+
+    @Test
+    @Transactional
+    void testTransferInsufficientFunds() {
+        BigDecimal amount = BigDecimal.valueOf(10000);  // Сумма превышает баланс
+
+        assertThrows(InsufficientFundsException.class, () -> {
+            balanceService.transfer(accountId, toAccountId, amount);  // Метод должен выбросить исключение
+        });
+    }
+
+    @Test
+    @Transactional
+    void testTransferAccountNotFound() {
+        Long invalidAccountId = 999L;  // Некорректный ID счета
+        BigDecimal amount = BigDecimal.valueOf(200);
+
+        assertThrows(AccountNotFoundException.class, () -> {
+            balanceService.transfer(invalidAccountId, toAccountId, amount);  // Метод должен выбросить исключение
+        });
+    }
+
+    @Test
     void testGetTransactionsByPeriod() {
         LocalDateTime startDate = LocalDateTime.now().minusDays(1);
         LocalDateTime endDate = LocalDateTime.now();

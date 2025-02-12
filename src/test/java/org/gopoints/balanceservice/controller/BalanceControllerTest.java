@@ -16,6 +16,7 @@ import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 
+import org.springframework.web.server.ResponseStatusException;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
@@ -86,6 +87,17 @@ public class BalanceControllerTest {
         Account updatedAccount = accountRepository.findById(accountId).orElseThrow();
         Assertions.assertEquals(new BigDecimal("1500.00"), updatedAccount.getBalance());
     }
+
+    @Test
+    void testDepositNegativeAmount() throws Exception {
+        BigDecimal amount = BigDecimal.valueOf(-100); // Невозможный депозит
+
+        mockMvc.perform(post("/accounts/{accountId}/deposit", accountId)
+                        .param("amount", amount.toString()))
+                .andExpect(status().isBadRequest())
+                .andExpect(result -> Assertions.assertInstanceOf(ResponseStatusException.class, result.getResolvedException()));
+    }
+
 
     @Test
     void testWithdraw() throws Exception {

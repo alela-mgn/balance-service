@@ -113,10 +113,10 @@ paths:
         '404':
           description: Счет не найден
 
-  /accounts/{accountId}/statements:
+  /accounts/{accountId}/transactions:
     get:
       summary: Получение выписки по операциям
-      operationId: getStatements
+      operationId: getTransactionsByPeriod
       parameters:
         - name: accountId
           in: path
@@ -127,20 +127,20 @@ paths:
             example: 1
         - name: startDate
           in: query
-          required: false
+          required: true
           description: Дата начала периода
           schema:
             type: string
-            format: date
-            example: "2025-01-01"
+            format: date-time
+            example: "2025-01-01T00:00:00"
         - name: endDate
           in: query
-          required: false
+          required: true
           description: Дата окончания периода
           schema:
             type: string
-            format: date
-            example: "2025-02-01"
+            format: date-time
+            example: "2025-02-01T00:00:00"
       responses:
         '200':
           description: Выписка успешно возвращена

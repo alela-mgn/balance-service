@@ -26,9 +26,6 @@ public class RabbitMQServiceTest {
     @Mock
     private RabbitTemplate rabbitTemplate;
 
-    @Mock
-    private BalanceService balanceService;
-
     @InjectMocks
     private RabbitMQService rabbitMQService;
 
